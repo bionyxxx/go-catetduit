@@ -39,10 +39,13 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	userRepo := user.NewRepository(db)
+	authService := auth.NewService(userRepo)
+
 	// Register routes
 	r.Route("/api/v1", func(r chi.Router) {
+		auth.RegisterRoutes(r, authService)
 		user.RegisterRoutes(r, db)
-		auth.RegisterRoutes(r)
 	})
 
 	// Start server

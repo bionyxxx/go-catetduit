@@ -18,3 +18,12 @@ func (r *repositoryImpl) GetUserByID(id int) (*User, error) {
 	}
 	return &user, nil
 }
+
+func (r *repositoryImpl) GetUserByEmail(email string) (*User, error) {
+	var user User
+	err := r.db.Get(&user, "SELECT id, name, email, age FROM users WHERE email=$1", email)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

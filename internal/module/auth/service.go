@@ -1,6 +1,9 @@
 package auth
 
-import "errors"
+import (
+	"catetduit/internal/module/user"
+	"errors"
+)
 
 var (
 	// ErrInvalidCredentials is returned when the provided credentials are invalid
@@ -14,16 +17,26 @@ var (
 )
 
 // Service represents the authentication service
-type Service struct{}
+type Service struct {
+	userRepo user.Repository
+}
 
 // NewService creates a new authentication service
-func NewService() *Service {
-	return &Service{}
+func NewService(userRepo user.Repository) *Service {
+	return &Service{
+		userRepo: userRepo,
+	}
 }
 
 // Authenticate authenticates a user with the given email and password
 func (s *Service) Authenticate(email, password string) error {
-	// Authentication logic goes here
+	userData, err := s.userRepo.GetUserByEmail(email)
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	_ = userData // In a real implementation, you would verify the password here
+
 	return nil
 }
 
