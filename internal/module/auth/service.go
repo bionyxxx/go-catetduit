@@ -3,17 +3,14 @@ package auth
 import (
 	"catetduit/internal/module/user"
 	"errors"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	// ErrInvalidCredentials is returned when the provided credentials are invalid
 	ErrInvalidCredentials = errors.New("invalid credentials")
-
-	// ErrUserAlreadyExists is returned when trying to register a user that already exists
-	ErrUserAlreadyExists = errors.New("user already exists")
-
-	// ErrUserNotFound is returned when a user is not found
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 // Service represents the authentication service
@@ -32,7 +29,11 @@ func NewService(userRepo user.Repository) *Service {
 func (s *Service) Authenticate(email, password string) error {
 	userData, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return ErrUserNotFound
+		return ErrInvalidCredentials
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password)); err != nil {
+		return ErrInvalidCredentials
 	}
 
 	_ = userData // In a real implementation, you would verify the password here
@@ -41,7 +42,7 @@ func (s *Service) Authenticate(email, password string) error {
 }
 
 // Register registers a new user with the given details
-func (s *Service) Register(name, email, password string) error {
-	// Registration logic goes here
+func (s *Service) Register(name, email, password string, age int) error {
+
 	return nil
 }

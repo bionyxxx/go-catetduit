@@ -7,12 +7,17 @@ import (
 	"catetduit/internal/module/user"
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
+
+var validate = validator.New()
 
 func main() {
 	err := godotenv.Load()
@@ -32,6 +37,19 @@ func main() {
 			panic(err)
 		}
 	}(db)
+
+	// This function registers a custom "tag name" function.
+	// It tells the validator to use the `json` tag value as the field name.
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		// Look for the json tag and split it by comma
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		// Use the struct field name as a fallback
+		if name == "-" || name == "" {
+			return fld.Name
+		}
+		return name
+	})
 
 	r := chi.NewRouter()
 
