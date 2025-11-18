@@ -28,6 +28,11 @@ func FormatValidationErrors(err error) map[string]string {
 				errorMessages[fieldName] = fmt.Sprintf("Must be at least %s characters long", fieldError.Param())
 			case "max":
 				errorMessages[fieldName] = fmt.Sprintf("Must be at most %s characters long", fieldError.Param())
+
+			// Custom validators
+			case "phone":
+				errorMessages[fieldName] = "Must be a valid phone number"
+
 			default:
 				errorMessages[fieldName] = "This field is invalid"
 			}

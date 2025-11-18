@@ -36,7 +36,9 @@ func (s *Service) Authenticate(email, password string) error {
 		return ErrInvalidCredentials
 	}
 
-	_ = userData // In a real implementation, you would verify the password here
+	_ = userData
+
+	// TODO: Generate and return JWT token or session info
 
 	return nil
 }

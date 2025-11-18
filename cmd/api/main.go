@@ -5,6 +5,7 @@ import (
 	"catetduit/internal/database"
 	"catetduit/internal/module/auth"
 	"catetduit/internal/module/user"
+	customValidator "catetduit/internal/validator"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -38,6 +39,9 @@ func main() {
 		}
 	}(db)
 
+	customValidator.SetDB(db)
+	validate = customValidator.NewCustomValidator()
+
 	// This function registers a custom "tag name" function.
 	// It tells the validator to use the `json` tag value as the field name.
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -62,7 +66,7 @@ func main() {
 
 	// Register routes
 	r.Route("/api/v1", func(r chi.Router) {
-		auth.RegisterRoutes(r, authService)
+		auth.RegisterRoutes(r, validate, authService)
 		user.RegisterRoutes(r, db)
 	})
 

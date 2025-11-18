@@ -4,6 +4,7 @@ import (
 	"catetduit/internal/helper"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -14,31 +15,28 @@ type Handler struct {
 	validator *validator.Validate
 }
 
-// NewHandler creates a new user handler
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, validator *validator.Validate) *Handler {
 	return &Handler{
 		service:   service,
-		validator: validator.New(),
+		validator: validator,
 	}
 }
 
-// Login handles user login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	//validate input using go-playground/validator
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err := helper.ResponseBadRequest(w, "Invalid request payload", err.Error())
 		if err != nil {
-			return
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
 
 	if err := h.validator.Struct(req); err != nil {
-		details := helper.FormatValidationErrors(err)
-		err := helper.ResponseUnprocessableEntity(w, "Validation failed", details)
+		errDetails := helper.FormatValidationErrors(err)
+		err := helper.ResponseUnprocessableEntity(w, "Validation failed", errDetails)
 		if err != nil {
-			return
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
@@ -52,24 +50,23 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, ErrInvalidCredentials) {
 			err := helper.ResponseUnauthorized(w, "Invalid email or password")
 			if err != nil {
-				return
+				fmt.Println("Error sending response:", err)
 			}
 			return
 		}
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
 		if err != nil {
-			return
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
 
 	err = helper.ResponseOK(w, "Login successful")
 	if err != nil {
-		return
+		fmt.Println("Error sending response:", err)
 	}
 }
 
-// Register handles user registration
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-
+	// TODO: Implement registration handler
 }
