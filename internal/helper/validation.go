@@ -28,10 +28,18 @@ func FormatValidationErrors(err error) map[string]string {
 				errorMessages[fieldName] = fmt.Sprintf("Must be at least %s characters long", fieldError.Param())
 			case "max":
 				errorMessages[fieldName] = fmt.Sprintf("Must be at most %s characters long", fieldError.Param())
-
+			case "eqfield":
+				errorMessages[fieldName] = fmt.Sprintf("Must be equal to %s", strings.ToLower(fieldError.Param()))
+			case "nefield":
+				errorMessages[fieldName] = fmt.Sprintf("Must not be equal to %s", strings.ToLower(fieldError.Param()))
 			// Custom validators
 			case "phone":
-				errorMessages[fieldName] = "Must be a valid phone number"
+				// must be 08xx, +62xxx, 62xxx
+				errorMessages[fieldName] = "Must be a valid phone number (e.g., 08xx, +62xxx, 62xxx)"
+			case "exists":
+				errorMessages[fieldName] = "The specified value does not exist"
+			case "unique":
+				errorMessages[fieldName] = "The specified value must be unique"
 
 			default:
 				errorMessages[fieldName] = "This field is invalid"

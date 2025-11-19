@@ -46,7 +46,6 @@ func phoneNumberValidator(fl validator.FieldLevel) bool {
 	return matched
 }
 
-// Generic exists validator with table and column parameters
 func existsValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		if db == nil {
@@ -88,7 +87,6 @@ func existsValidator() validator.Func {
 	}
 }
 
-// Generic unique validator
 func uniqueValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		if db == nil {
@@ -106,8 +104,8 @@ func uniqueValidator() validator.Func {
 		column := parts[1]
 		value := fl.Field().Interface()
 
-		allowedTables := map[string]bool{"users": true, "products": true}
-		allowedColumns := map[string]bool{"email": true, "id": true}
+		allowedTables := map[string]bool{"users": true}
+		allowedColumns := map[string]bool{"phone": true, "email": true, "id": true}
 
 		if !allowedTables[table] || !allowedColumns[column] {
 			return false

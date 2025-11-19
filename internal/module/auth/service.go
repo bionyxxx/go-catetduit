@@ -18,7 +18,6 @@ type Service struct {
 	userRepo user.Repository
 }
 
-// NewService creates a new authentication service
 func NewService(userRepo user.Repository) *Service {
 	return &Service{
 		userRepo: userRepo,
@@ -43,8 +42,24 @@ func (s *Service) Authenticate(email, password string) error {
 	return nil
 }
 
-// Register registers a new user with the given details
-func (s *Service) Register(name, email, password string, age int) error {
+func (s *Service) Register(name, phone, email, password string) error {
+	// Hash the password before storing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	// Create user model to repository
+	newUser := &user.User{
+		Name:     name,
+		Phone:    phone,
+		Email:    email,
+		Password: string(hashedPassword),
+	}
+
+	err = s.userRepo.CreateUser(newUser)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

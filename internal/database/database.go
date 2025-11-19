@@ -3,9 +3,11 @@ package database
 import (
 	"catetduit/internal/config"
 	"fmt"
+	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/pressly/goose/v3"
 )
 
 func DBConnect(databaseConfig *config.DatabaseConfig) *sqlx.DB {
@@ -30,4 +32,13 @@ func DBConnect(databaseConfig *config.DatabaseConfig) *sqlx.DB {
 	}
 
 	return db
+}
+
+func DBMigration(database *sqlx.DB) {
+	goose.SetTableName(os.Getenv("DB_MIGRATIONS_TABLE"))
+
+	err := goose.Up(database.DB, "./migrations")
+	if err != nil {
+		panic(err)
+	}
 }

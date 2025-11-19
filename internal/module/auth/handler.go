@@ -68,5 +68,42 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement registration handler
+	var req RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		err := helper.ResponseBadRequest(w, "Invalid request payload", err.Error())
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		errDetails := helper.FormatValidationErrors(err)
+		err := helper.ResponseUnprocessableEntity(w, "Validation failed", errDetails)
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	name := req.Name
+	phone := req.Phone
+	email := req.Email
+	password := req.Password
+
+	err := h.service.Register(name, phone, email, password)
+
+	if err != nil {
+		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	err = helper.ResponseCreated(w, "Registration successful", nil)
+	if err != nil {
+		fmt.Println("Error sending response:", err)
+	}
+
 }

@@ -26,7 +26,6 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		ID:    1,
 		Name:  "John Doe",
 		Email: "john.doe@example.com",
-		Age:   30,
 	}
 
 	err := helper.ResponseOKWithData(w, "Retrieval successful", user)

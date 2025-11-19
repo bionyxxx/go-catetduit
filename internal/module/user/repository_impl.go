@@ -2,8 +2,15 @@ package user
 
 import "github.com/jmoiron/sqlx"
 
+var tableName = "users"
+
 type repositoryImpl struct {
 	db *sqlx.DB
+}
+
+func (r *repositoryImpl) CreateUser(user *User) error {
+	_, err := r.db.NamedExec("INSERT INTO users (name, phone, email, password) VALUES (:name, :phone, :email, :password)", user)
+	return err
 }
 
 func NewRepository(db *sqlx.DB) Repository {

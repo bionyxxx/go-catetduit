@@ -7,6 +7,7 @@ import (
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
 	"fmt"
+	_ "log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -38,6 +39,9 @@ func main() {
 			panic(err)
 		}
 	}(db)
+
+	// Database migrations (if any)
+	database.DBMigration(db)
 
 	customValidator.SetDB(db)
 	validate = customValidator.NewCustomValidator()

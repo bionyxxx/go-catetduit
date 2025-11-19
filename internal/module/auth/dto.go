@@ -6,8 +6,9 @@ type LoginRequest struct {
 }
 
 type RegisterRequest struct {
-	Name     string `json:"name" validate:"required,min=2,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
-	Age      int    `json:"age" validate:"omitempty,min=0"`
+	Name                 string `json:"name" validate:"required,min=2,max=100"`
+	Phone                string `json:"phone" validate:"required,phone,unique=users.phone"`
+	Email                string `json:"email" validate:"required,email,unique=users.email"`
+	Password             string `json:"password" validate:"required,min=6"`
+	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
 }
