@@ -1,6 +1,10 @@
 package user
 
-import "github.com/jmoiron/sqlx"
+import (
+	"errors"
+
+	"github.com/jmoiron/sqlx"
+)
 
 var tableName = "users"
 
@@ -8,13 +12,38 @@ type repositoryImpl struct {
 	db *sqlx.DB
 }
 
-func (r *repositoryImpl) CreateUser(user *User) error {
-	_, err := r.db.NamedExec("INSERT INTO users (name, phone, email, password) VALUES (:name, :phone, :email, :password)", user)
-	return err
-}
-
 func NewRepository(db *sqlx.DB) Repository {
 	return &repositoryImpl{db: db}
+}
+
+func (r *repositoryImpl) CreateUser(user *User) (*User, error) {
+	query := `
+		INSERT INTO users (name, phone, email, password) 
+		VALUES (:name, :phone, :email, :password)
+		RETURNING id, name, phone, email, created_at, updated_at
+	`
+
+	rows, err := r.db.NamedQuery(query, user)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sqlx.Rows) {
+		err := rows.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(rows)
+
+	if !rows.Next() {
+		return nil, errors.New("user not found")
+	}
+
+	var createdUser User
+	if err = rows.StructScan(&createdUser); err != nil {
+		return nil, err
+	}
+
+	return &createdUser, nil
 }
 
 func (r *repositoryImpl) GetUserByID(id int) (*User, error) {

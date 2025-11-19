@@ -83,7 +83,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Register(req.Name, req.Phone, req.Email, req.Password)
+	userResp, err := h.service.Register(req.Name, req.Phone, req.Email, req.Password)
 
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
@@ -93,7 +93,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = helper.ResponseCreated(w, "Registration successful", nil)
+	err = helper.ResponseCreated(w, "Registration successful", userResp)
 	if err != nil {
 		fmt.Println("Error sending response:", err)
 	}

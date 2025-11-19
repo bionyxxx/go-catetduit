@@ -26,24 +26,24 @@ func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper) *Service 
 	}
 }
 
-func (s *Service) Authenticate(email, password string) (loginResp *LoginResponse, err error) {
+func (s *Service) Authenticate(email, password string) (*LoginResponse, error) {
 	userData, err := s.userRepo.GetUserByEmail(email)
 
 	if err != nil || bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password)) != nil {
-		return loginResp, ErrInvalidCredentials
+		return nil, ErrInvalidCredentials
 	}
 
 	accessToken, exp, err := s.jwtHelper.GenerateAccessToken(uint(userData.ID), userData.Email, userData.Name)
 	if err != nil {
-		return loginResp, err
+		return nil, err
 	}
 
 	refreshToken, err := s.jwtHelper.GenerateRefreshToken(uint(userData.ID), userData.Email, userData.Name)
 	if err != nil {
-		return loginResp, err
+		return nil, err
 	}
 
-	loginResp = &LoginResponse{
+	loginResp := &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    exp,
@@ -52,10 +52,10 @@ func (s *Service) Authenticate(email, password string) (loginResp *LoginResponse
 	return loginResp, nil
 }
 
-func (s *Service) Register(name, phone, email, password string) error {
+func (s *Service) Register(name, phone, email, password string) (*user.UserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	newUser := &user.User{
 		Name:     name,
@@ -64,10 +64,19 @@ func (s *Service) Register(name, phone, email, password string) error {
 		Password: string(hashedPassword),
 	}
 
-	err = s.userRepo.CreateUser(newUser)
+	createdUser, err := s.userRepo.CreateUser(newUser)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	userResp := &user.UserResponse{
+		Name:      createdUser.Name,
+		Phone:     createdUser.Phone,
+		Email:     createdUser.Email,
+		CreatedAt: createdUser.CreatedAt.Unix(),
+		UpdatedAt: createdUser.UpdatedAt.Unix(),
+	}
+
+	return userResp, nil
 }
