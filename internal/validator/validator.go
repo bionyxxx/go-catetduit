@@ -41,7 +41,7 @@ func RegisterCustomValidations() {
 
 func phoneNumberValidator(fl validator.FieldLevel) bool {
 	phone := fl.Field().String()
-	// Format: 08xx atau +62xxx atau 62xxx
+	// Format: 08xx, +62xxx or 62xxx
 	matched, _ := regexp.MatchString(`^(\+62|62|0)8[0-9]{8,11}$`, phone)
 	return matched
 }

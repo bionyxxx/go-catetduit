@@ -25,21 +25,21 @@ func NewService(userRepo user.Repository) *Service {
 }
 
 // Authenticate authenticates a user with the given email and password
-func (s *Service) Authenticate(email, password string) error {
+func (s *Service) Authenticate(email, password string) (accessToken string, err error) {
 	userData, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return ErrInvalidCredentials
+		return "", ErrInvalidCredentials
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password)); err != nil {
-		return ErrInvalidCredentials
+		return "", ErrInvalidCredentials
 	}
 
 	_ = userData
 
 	// TODO: Generate and return JWT token or session info
 
-	return nil
+	return "mocked-access-token", nil
 }
 
 func (s *Service) Register(name, phone, email, password string) error {

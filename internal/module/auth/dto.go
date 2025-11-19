@@ -12,3 +12,9 @@ type RegisterRequest struct {
 	Password             string `json:"password" validate:"required,min=6"`
 	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
 }
+
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiredAt    int64  `json:"expired_at"`
+}
