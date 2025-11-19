@@ -16,5 +16,5 @@ type RegisterRequest struct {
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-	ExpiredAt    int64  `json:"expired_at"`
+	ExpiresAt    int64  `json:"expired_at"`
 }

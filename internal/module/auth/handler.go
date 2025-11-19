@@ -41,10 +41,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := req.Email
-	password := req.Password
-
-	err := h.service.Authenticate(email, password)
+	loginResp, err := h.service.Authenticate(req.Email, req.Password)
 
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
@@ -61,7 +58,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = helper.ResponseOK(w, "Login successful")
+	err = helper.ResponseOKWithData(w, "Login successful", loginResp)
 	if err != nil {
 		fmt.Println("Error sending response:", err)
 	}
@@ -86,12 +83,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := req.Name
-	phone := req.Phone
-	email := req.Email
-	password := req.Password
-
-	err := h.service.Register(name, phone, email, password)
+	err := h.service.Register(req.Name, req.Phone, req.Email, req.Password)
 
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())

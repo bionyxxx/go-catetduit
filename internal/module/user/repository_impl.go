@@ -19,7 +19,7 @@ func NewRepository(db *sqlx.DB) Repository {
 
 func (r *repositoryImpl) GetUserByID(id int) (*User, error) {
 	var user User
-	err := r.db.Get(&user, "SELECT id, name, email, age FROM users WHERE id=$1", id)
+	err := r.db.Get(&user, "SELECT id, name, phone, email, password FROM users WHERE id=$1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (r *repositoryImpl) GetUserByID(id int) (*User, error) {
 
 func (r *repositoryImpl) GetUserByEmail(email string) (*User, error) {
 	var user User
-	err := r.db.Get(&user, "SELECT id, name, email, age FROM users WHERE email=$1", email)
+	err := r.db.Get(&user, "SELECT id, name, phone, email, password FROM users WHERE email=$1", email)
 	if err != nil {
 		return nil, err
 	}

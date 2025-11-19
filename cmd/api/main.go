@@ -3,6 +3,7 @@ package main
 import (
 	"catetduit/internal/config"
 	"catetduit/internal/database"
+	"catetduit/internal/helper"
 	"catetduit/internal/module/auth"
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
@@ -66,7 +67,11 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	userRepo := user.NewRepository(db)
-	authService := auth.NewService(userRepo)
+
+	// Init helpers
+	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret)
+
+	authService := auth.NewService(userRepo, jwtHelper)
 
 	// Register routes
 	r.Route("/api/v1", func(r chi.Router) {

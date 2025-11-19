@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"catetduit/internal/helper"
 	"catetduit/internal/module/user"
 	"errors"
 
@@ -13,42 +14,49 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 )
 
-// Service represents the authentication service
 type Service struct {
-	userRepo user.Repository
+	userRepo  user.Repository
+	jwtHelper *helper.JWTHelper
 }
 
-func NewService(userRepo user.Repository) *Service {
+func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper) *Service {
 	return &Service{
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		jwtHelper: jwtHelper,
 	}
 }
 
-// Authenticate authenticates a user with the given email and password
-func (s *Service) Authenticate(email, password string) (accessToken string, err error) {
+func (s *Service) Authenticate(email, password string) (loginResp *LoginResponse, err error) {
 	userData, err := s.userRepo.GetUserByEmail(email)
+
+	if err != nil || bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password)) != nil {
+		return loginResp, ErrInvalidCredentials
+	}
+
+	accessToken, exp, err := s.jwtHelper.GenerateAccessToken(uint(userData.ID), userData.Email, userData.Name)
 	if err != nil {
-		return "", ErrInvalidCredentials
+		return loginResp, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password)); err != nil {
-		return "", ErrInvalidCredentials
+	refreshToken, err := s.jwtHelper.GenerateRefreshToken(uint(userData.ID), userData.Email, userData.Name)
+	if err != nil {
+		return loginResp, err
 	}
 
-	_ = userData
+	loginResp = &LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresAt:    exp,
+	}
 
-	// TODO: Generate and return JWT token or session info
-
-	return "mocked-access-token", nil
+	return loginResp, nil
 }
 
 func (s *Service) Register(name, phone, email, password string) error {
-	// Hash the password before storing
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	// Create user model to repository
 	newUser := &user.User{
 		Name:     name,
 		Phone:    phone,
