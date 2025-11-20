@@ -17,12 +17,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
-
-var validate = validator.New()
 
 func main() {
 	err := godotenv.Load()
@@ -47,7 +44,7 @@ func main() {
 	database.DBMigration(db)
 
 	customValidator.SetDB(db)
-	validate = customValidator.NewCustomValidator()
+	validate := customValidator.NewCustomValidator()
 
 	// This function registers a custom "tag name" function.
 	// It tells the validator to use the `json` tag value as the field name.
@@ -67,7 +64,7 @@ func main() {
 	// CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -92,7 +89,7 @@ func main() {
 		r.Group(func(r chi.Router) {
 			authMiddleware := middleware2.NewAuthMiddleware(jwtHelper)
 			r.Use(authMiddleware.RequireAuth)
-			user.RegisterRoutes(r, userService)
+			user.RegisterRoutes(r, validate, userService)
 		})
 	})
 

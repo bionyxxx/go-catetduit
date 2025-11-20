@@ -40,6 +40,8 @@ func FormatValidationErrors(err error) map[string]string {
 				errorMessages[fieldName] = "The specified value does not exist"
 			case "unique":
 				errorMessages[fieldName] = "The specified value must be unique"
+			case "old_password":
+				errorMessages[fieldName] = "The old password is incorrect"
 
 			default:
 				errorMessages[fieldName] = "This field is invalid"

@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"catetduit/internal/config"
 	"errors"
 	"strings"
 	"time"
@@ -21,17 +22,19 @@ type JWTClaims struct {
 }
 
 type JWTHelper struct {
-	secretKey string
+	secretKey  string
+	mainConfig *config.Config
 }
 
 func NewJWTHelper(secretKey string) *JWTHelper {
 	return &JWTHelper{
-		secretKey: secretKey,
+		secretKey:  secretKey,
+		mainConfig: config.NewConfig(),
 	}
 }
 
 func (j *JWTHelper) GenerateAccessToken(userID uint, email, name string) (string, int64, error) {
-	expirationTime := time.Now().Add(3 * time.Hour) // Token berlaku 3 jam
+	expirationTime := time.Now().Add(time.Duration(j.mainConfig.JWTExpiredInHour) * time.Hour)
 
 	claims := &JWTClaims{
 		UserID: userID,
@@ -54,7 +57,7 @@ func (j *JWTHelper) GenerateAccessToken(userID uint, email, name string) (string
 }
 
 func (j *JWTHelper) GenerateRefreshToken(userID uint, email, name string) (string, error) {
-	expirationTime := time.Now().Add(7 * 24 * time.Hour) // Token berlaku 7 hari
+	expirationTime := time.Now().Add(time.Duration(j.mainConfig.JWTRefreshExpiredInHour) * time.Hour) // Token berlaku 7 hari
 
 	claims := &JWTClaims{
 		UserID: userID,

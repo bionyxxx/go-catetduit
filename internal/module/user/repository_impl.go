@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var tableName = "users"
+//var tableName = "users"
 
 type repositoryImpl struct {
 	db *sqlx.DB
@@ -48,7 +48,7 @@ func (r *repositoryImpl) CreateUser(user *User) (*User, error) {
 
 func (r *repositoryImpl) GetUserByID(id uint) (*User, error) {
 	var user User
-	err := r.db.Get(&user, "SELECT id, name, phone, email, password FROM users WHERE id=$1", id)
+	err := r.db.Get(&user, "SELECT id, name, phone, email, password, created_at, updated_at FROM users WHERE id=$1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +57,14 @@ func (r *repositoryImpl) GetUserByID(id uint) (*User, error) {
 
 func (r *repositoryImpl) GetUserByEmail(email string) (*User, error) {
 	var user User
-	err := r.db.Get(&user, "SELECT id, name, phone, email, password FROM users WHERE email=$1", email)
+	err := r.db.Get(&user, "SELECT id, name, phone, email, password, created_at, updated_at FROM users WHERE email=$1", email)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *repositoryImpl) ChangePassword(id uint, newPassword string) error {
+	_, err := r.db.Exec("UPDATE users SET password=$1, updated_at=NOW() WHERE id=$2", newPassword, id)
+	return err
 }
