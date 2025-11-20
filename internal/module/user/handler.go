@@ -2,33 +2,37 @@ package user
 
 import (
 	"catetduit/internal/helper"
+	"catetduit/internal/middleware"
 	"net/http"
-
-	"github.com/jmoiron/sqlx"
 )
 
-// Handler handles user-related HTTP requests
 type Handler struct {
-	db *sqlx.DB
+	service *Service
 }
 
-// NewHandler creates a new user handler
-func NewHandler(db *sqlx.DB) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
-		db,
+		service: service,
 	}
 }
 
-// GetUser returns a static dummy user
-func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-	// Static dummy user
-	user := User{
-		ID:    1,
-		Name:  "John Doe",
-		Email: "john.doe@example.com",
+func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+	claims, err := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
+	if !err {
+		err := helper.ResponseUnauthorized(w, "Unauthorized access")
+		if err != nil {
+			panic(err.Error())
+		}
+		return
 	}
 
-	err := helper.ResponseOKWithData(w, "Retrieval successful", user)
+	userId := claims.UserID
+
+	user, err := h.service.GetUserByID(userId)
+
+	//TODO : fix me response
+
+	err = helper.ResponseOKWithData(w, "Retrieval successful", user)
 
 	if err != nil {
 		panic(err.Error())

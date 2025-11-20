@@ -4,6 +4,7 @@ import (
 	"catetduit/internal/config"
 	"catetduit/internal/database"
 	"catetduit/internal/helper"
+	middleware2 "catetduit/internal/middleware"
 	"catetduit/internal/module/auth"
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
@@ -72,22 +73,27 @@ func main() {
 		MaxAge:           300,
 	})
 
-	// Middleware
-	r.Use(c.Handler)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
 	userRepo := user.NewRepository(db)
 
 	// Init helpers
 	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret)
 
 	authService := auth.NewService(userRepo, jwtHelper)
+	userService := user.NewService(userRepo)
+
+	// Middleware
+	r.Use(c.Handler)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	// Register routes
 	r.Route("/api/v1", func(r chi.Router) {
 		auth.RegisterRoutes(r, validate, authService)
-		user.RegisterRoutes(r, db)
+		r.Group(func(r chi.Router) {
+			authMiddleware := middleware2.NewAuthMiddleware(jwtHelper)
+			r.Use(authMiddleware.RequireAuth)
+			user.RegisterRoutes(r, userService)
+		})
 	})
 
 	// Start server

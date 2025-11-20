@@ -2,12 +2,11 @@ package user
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/jmoiron/sqlx"
 )
 
 // RegisterRoutes registers all user-related routes
-func RegisterRoutes(r chi.Router, db *sqlx.DB) {
-	handler := NewHandler(db)
+func RegisterRoutes(r chi.Router, userService *Service) {
+	handler := NewHandler(userService)
 
-	r.Get("/user", handler.GetUser)
+	r.Get("/me", handler.Me)
 }

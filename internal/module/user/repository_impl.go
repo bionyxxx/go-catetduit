@@ -46,7 +46,7 @@ func (r *repositoryImpl) CreateUser(user *User) (*User, error) {
 	return &createdUser, nil
 }
 
-func (r *repositoryImpl) GetUserByID(id int) (*User, error) {
+func (r *repositoryImpl) GetUserByID(id uint) (*User, error) {
 	var user User
 	err := r.db.Get(&user, "SELECT id, name, phone, email, password FROM users WHERE id=$1", id)
 	if err != nil {
