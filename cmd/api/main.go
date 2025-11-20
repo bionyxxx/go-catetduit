@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -62,7 +63,29 @@ func main() {
 
 	r := chi.NewRouter()
 
+	// CORS
+	c := cors.New(cors.Options{
+		// GANTI INI dengan URL Next.js Anda.
+		// Saat pengembangan (misalnya): "http://localhost:3000"
+		// Saat produksi (misalnya): "https://app.domainanda.com"
+		// Jika ingin mengizinkan SEMUA (Hanya untuk testing/dev!): []string{"*"}
+		AllowedOrigins: []string{"http://localhost:3000"},
+
+		// Metode yang diizinkan oleh API Anda
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+
+		// Header yang diizinkan untuk dikirim oleh Next.js (misalnya, untuk Auth Token)
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+
+		// Izinkan kredensial (penting jika Anda menggunakan Cookie/Session)
+		AllowCredentials: true,
+
+		// Maksimum waktu (detik) preflight OPTIONS request dapat di-cache oleh browser
+		MaxAge: 300, // 5 menit
+	})
+
 	// Middleware
+	r.Use(c.Handler)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
