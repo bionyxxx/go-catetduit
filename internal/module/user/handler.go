@@ -17,8 +17,8 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
-	claims, err := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
-	if !err {
+	claims, ok := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
+	if !ok {
 		err := helper.ResponseUnauthorized(w, "Unauthorized access")
 		if err != nil {
 			panic(err.Error())
@@ -29,8 +29,6 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	userId := claims.UserID
 
 	user, err := h.service.GetUserByID(userId)
-
-	//TODO : fix me response
 
 	err = helper.ResponseOKWithData(w, "Retrieval successful", user)
 
