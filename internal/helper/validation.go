@@ -32,6 +32,16 @@ func FormatValidationErrors(err error) map[string]string {
 				errorMessages[fieldName] = fmt.Sprintf("Must be equal to %s", strings.ToLower(fieldError.Param()))
 			case "nefield":
 				errorMessages[fieldName] = fmt.Sprintf("Must not be equal to %s", strings.ToLower(fieldError.Param()))
+			case "gte":
+				errorMessages[fieldName] = fmt.Sprintf("Must be greater than or equal to %s", fieldError.Param())
+			case "lte":
+				errorMessages[fieldName] = fmt.Sprintf("Must be less than or equal to %s", fieldError.Param())
+			case "numeric":
+				errorMessages[fieldName] = "Must be a numeric value"
+			case "url":
+				errorMessages[fieldName] = "Must be a valid URL"
+			case "oneof":
+				errorMessages[fieldName] = fmt.Sprintf("Must be one of the following values: %s", fieldError.Param())
 			// Custom validators
 			case "phone":
 				// must be 08xx, +62xxx, 62xxx

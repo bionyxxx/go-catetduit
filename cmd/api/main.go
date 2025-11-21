@@ -6,6 +6,7 @@ import (
 	"catetduit/internal/helper"
 	middleware2 "catetduit/internal/middleware"
 	"catetduit/internal/module/auth"
+	"catetduit/internal/module/transaction"
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
 	"fmt"
@@ -71,12 +72,14 @@ func main() {
 	})
 
 	userRepo := user.NewRepository(db)
+	transactionRepo := transaction.NewRepository(db)
 
 	// Init helpers
 	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret)
 
 	authService := auth.NewService(userRepo, jwtHelper)
 	userService := user.NewService(userRepo)
+	transactionService := transaction.NewService(transactionRepo)
 
 	// Middleware
 	r.Use(c.Handler)
@@ -90,6 +93,7 @@ func main() {
 			authMiddleware := middleware2.NewAuthMiddleware(jwtHelper)
 			r.Use(authMiddleware.RequireAuth)
 			user.RegisterRoutes(r, validate, userService)
+			transaction.RegisterRoutes(r, validate, transactionService)
 		})
 	})
 

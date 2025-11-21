@@ -83,7 +83,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userResp, err := h.service.Register(req.Name, req.Phone, req.Email, req.Password)
+	userResp, err := h.service.Register(&req)
 
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())

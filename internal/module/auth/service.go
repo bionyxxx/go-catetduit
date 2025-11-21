@@ -52,15 +52,15 @@ func (s *Service) Authenticate(email, password string) (*LoginResponse, error) {
 	return loginResp, nil
 }
 
-func (s *Service) Register(name, phone, email, password string) (*user.UserResponse, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *Service) Register(registerRequest *RegisterRequest) (*user.UserResponse, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 	newUser := &user.User{
-		Name:     name,
-		Phone:    phone,
-		Email:    email,
+		Name:     registerRequest.Name,
+		Phone:    registerRequest.Phone,
+		Email:    registerRequest.Email,
 		Password: string(hashedPassword),
 	}
 

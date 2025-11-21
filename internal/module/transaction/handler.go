@@ -1,9 +1,10 @@
-package user
+package transaction
 
 import (
 	"catetduit/internal/helper"
 	"catetduit/internal/middleware"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -21,7 +22,7 @@ func NewHandler(service *Service, validator *validator.Validate) *Handler {
 	}
 }
 
-func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
 	if !ok {
 		err := helper.ResponseUnauthorized(w, "Unauthorized access")
@@ -33,8 +34,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 
 	userId := claims.UserID
 
-	user, err := h.service.GetUserByID(userId)
-
+	transactions, err := h.service.GetTransactionsByUserID(userId)
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
 		if err != nil {
@@ -43,15 +43,14 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = helper.ResponseOKWithData(w, "Retrieval successful", user)
+	err = helper.ResponseOKWithData(w, "Retrieval successful", transactions)
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
-func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
-
 	if !ok {
 		err := helper.ResponseUnauthorized(w, "Unauthorized access")
 		if err != nil {
@@ -60,30 +59,12 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := claims.UserID
-
-	// Register custom validation for old password
-	err := h.validator.RegisterValidation("old_password", func(fl validator.FieldLevel) bool {
-		oldPassword := fl.Field().String()
-		valid, err := h.oldPasswordValidator(userId, oldPassword)
-		if err != nil || !valid {
-			return false
-		}
-		return true
-	})
-	if err != nil {
-		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
-		if err != nil {
-			panic(err.Error())
-		}
-		return
-	}
-
-	var req ChangePasswordRequest
+	var req CreateTransactionRequest
+	req.UserID = claims.UserID
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err := helper.ResponseBadRequest(w, "Invalid request payload", err.Error())
 		if err != nil {
-			panic(err.Error())
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
@@ -92,30 +73,23 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		errDetails := helper.FormatValidationErrors(err)
 		err := helper.ResponseUnprocessableEntity(w, "Validation failed", errDetails)
 		if err != nil {
-			panic(err.Error())
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
 
-	err = h.service.ChangePassword(userId, req.NewPassword)
+	transactionResp, err := h.service.CreateTransaction(&req)
 
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
 		if err != nil {
-			panic(err.Error())
+			fmt.Println("Error sending response:", err)
 		}
 		return
 	}
 
-	err = helper.ResponseOK(w, "Password changed successfully")
-
+	err = helper.ResponseCreated(w, "Transaction created successfully", transactionResp)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("Error sending response:", err)
 	}
-
-}
-
-// oldPasswordValidator checks if the provided old password matches the stored password for a user.
-func (h *Handler) oldPasswordValidator(userID uint, oldPassword string) (bool, error) {
-	return h.service.CheckOldPassword(userID, oldPassword)
 }
