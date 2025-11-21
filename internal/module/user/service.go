@@ -31,7 +31,6 @@ func (s *Service) GetUserByID(id uint) (*UserResponse, error) {
 	return userResp, nil
 }
 
-// ChangePassword
 func (s *Service) ChangePassword(userID uint, newPassword string) error {
 	// Hash new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
@@ -45,7 +44,6 @@ func (s *Service) ChangePassword(userID uint, newPassword string) error {
 	return err
 }
 
-// check old password
 func (s *Service) CheckOldPassword(userID uint, oldPassword string) (bool, error) {
 	userData, err := s.repo.GetUserByID(userID)
 

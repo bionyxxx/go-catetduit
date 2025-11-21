@@ -11,6 +11,23 @@ type TransactionResponse struct {
 	UpdatedAt       int64   `json:"updated_at"`
 }
 
+type TransactionSummaryResponse struct {
+	TotalCredit float64 `json:"total_credit"`
+	TotalDebit  float64 `json:"total_debit"`
+	Balance     float64 `json:"balance"`
+}
+
+type TransactionLoadMoreResponse struct {
+	Transactions []*TransactionResponse `json:"transactions"`
+	HasMore      bool                   `json:"has_more"`
+}
+
+type GetTransactionsByUserIDRequest struct {
+	UserID uint `json:"user_id" validate:"required"`
+	Limit  uint `json:"limit" validate:"gte=0"`
+	Offset uint `json:"offset" validate:"gte=0"`
+}
+
 type CreateTransactionRequest struct {
 	UserID          uint    `json:"user_id" validate:"required"`
 	Type            string  `json:"type" validate:"required,oneof=credit debit"`

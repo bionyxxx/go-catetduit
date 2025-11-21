@@ -9,5 +9,6 @@ func RegisterRoutes(r chi.Router, validator *validator.Validate, transactionServ
 	handler := NewHandler(transactionService, validator)
 
 	r.Get("/transactions", handler.GetTransactionsByUser)
+	r.Get("/transactions/summary", handler.GetTransactionSummaryByUser)
 	r.Post("/transactions", handler.CreateTransaction)
 }

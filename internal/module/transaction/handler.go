@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -32,9 +33,29 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userId := claims.UserID
+	var req GetTransactionsByUserIDRequest
+	req.UserID = claims.UserID
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
 
-	transactions, err := h.service.GetTransactionsByUserID(userId)
+	limit := uint(10) // default
+	offset := uint(0) // default
+
+	if limitStr != "" {
+		if val, err := strconv.ParseUint(limitStr, 10, 32); err == nil {
+			limit = uint(val)
+		}
+	}
+
+	if offsetStr != "" {
+		if val, err := strconv.ParseUint(offsetStr, 10, 32); err == nil {
+			offset = uint(val)
+		}
+	}
+
+	req.Limit = limit
+	req.Offset = offset
+	transactionsResp, err := h.service.GetTransactionsByUserID(&req)
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
 		if err != nil {
@@ -43,7 +64,34 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = helper.ResponseOKWithData(w, "Retrieval successful", transactions)
+	err = helper.ResponseOKWithData(w, "Retrieval successful", transactionsResp)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func (h *Handler) GetTransactionSummaryByUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserClaimsKey).(*helper.JWTClaims)
+	if !ok {
+		err := helper.ResponseUnauthorized(w, "Unauthorized access")
+		if err != nil {
+			panic(err.Error())
+		}
+		return
+	}
+
+	userId := claims.UserID
+
+	summaryResp, err := h.service.GetTransactionSummaryByUserID(userId)
+	if err != nil {
+		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
+		if err != nil {
+			panic(err.Error())
+		}
+		return
+	}
+
+	err = helper.ResponseOKWithData(w, "Retrieval successful", summaryResp)
 	if err != nil {
 		panic(err.Error())
 	}

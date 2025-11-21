@@ -45,11 +45,16 @@ func (s *Service) CreateTransaction(transactionRequest *CreateTransactionRequest
 	return transactionResponse, nil
 }
 
-func (s *Service) GetTransactionsByUserID(userID uint) ([]*TransactionResponse, error) {
-
-	transactions, err := s.repo.GetTransactionsByUserID(userID)
+func (s *Service) GetTransactionsByUserID(req *GetTransactionsByUserIDRequest) ([]*TransactionLoadMoreResponse, error) {
+	transactions, err := s.repo.GetTransactionsByUserID(req.UserID, req.Limit+1, req.Offset)
 	if err != nil {
 		return nil, err
+	}
+
+	hasMore := len(transactions) > int(req.Limit)
+
+	if hasMore {
+		transactions = transactions[:req.Limit]
 	}
 
 	var transactionResponses []*TransactionResponse
@@ -66,5 +71,26 @@ func (s *Service) GetTransactionsByUserID(userID uint) ([]*TransactionResponse, 
 		}
 		transactionResponses = append(transactionResponses, txResp)
 	}
-	return transactionResponses, nil
+
+	return []*TransactionLoadMoreResponse{
+		{
+			Transactions: transactionResponses,
+			HasMore:      hasMore,
+		},
+	}, nil
+}
+
+func (s *Service) GetTransactionSummaryByUserID(userID uint) (*TransactionSummaryResponse, error) {
+	transactionSummary, err := s.repo.GetTransactionSummaryByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	summary := &TransactionSummaryResponse{
+		TotalCredit: transactionSummary.TotalCredit,
+		TotalDebit:  transactionSummary.TotalDebit,
+		Balance:     transactionSummary.TotalCredit - transactionSummary.TotalDebit,
+	}
+
+	return summary, nil
 }

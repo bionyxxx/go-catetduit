@@ -49,11 +49,40 @@ func (r *repositoryImpl) CreateTransaction(transaction *Transaction) (*Transacti
 	return &createdTransaction, nil
 }
 
-func (r *repositoryImpl) GetTransactionsByUserID(userID uint) ([]*Transaction, error) {
+func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint) ([]*Transaction, error) {
 	var transactions []*Transaction
-	err := r.db.Select(&transactions, "SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1", userID)
+	err := r.db.Select(&transactions,
+		"SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1 ORDER BY transaction_date DESC LIMIT $2 OFFSET $3",
+		userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	return transactions, nil
+}
+
+func (r *repositoryImpl) GetAllTransactionsByUserID(userID uint) ([]*Transaction, error) {
+	var transactions []*Transaction
+	err := r.db.Select(&transactions,
+		"SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1 ORDER BY transaction_date DESC",
+		userID)
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}
+
+func (r *repositoryImpl) GetTransactionSummaryByUserID(userID uint) (*TransactionSummary, error) {
+	var summary TransactionSummary
+	query := `
+		SELECT 
+			COALESCE(SUM(CASE WHEN type = $1 THEN amount ELSE 0 END), 0) AS total_credit,
+			COALESCE(SUM(CASE WHEN type = $2 THEN amount ELSE 0 END), 0) AS total_debit
+		FROM transactions
+		WHERE user_id = $3
+	`
+	err := r.db.Get(&summary, query, TransactionTypeCredit, TransactionTypeDebit, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &summary, nil
 }

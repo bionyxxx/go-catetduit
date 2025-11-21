@@ -15,3 +15,8 @@ type Transaction struct {
 	CreatedAt       time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
 }
+
+type TransactionSummary struct {
+	TotalCredit float64 `json:"total_credit" db:"total_credit"`
+	TotalDebit  float64 `json:"total_debit" db:"total_debit"`
+}
