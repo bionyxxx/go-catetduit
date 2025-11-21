@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Go API Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-catetduit-app
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      API_PORT: 8082
+      DB_HOST: host.docker.internal  # Menggunakan PostgreSQL di host system
+      DB_PORT: 5432
+      DB_USER: catetduit  # Sesuaikan dengan user PostgreSQL Anda
+      DB_PASSWORD: zG57kDHZJ85CDXAc  # Sesuaikan dengan password PostgreSQL Anda
+      DB_NAME: catetduit  # Sesuaikan dengan nama database Anda
+      DB_MIGRATIONS_TABLE: migrations
+      JWT_SECRET: be97a15dc9f5c6852f51667fa1c414a6
+      JWT_EXPIRED_IN_HOURS: 8
+      JWT_REFRESH_EXPIRED_IN_HOURS: 168
+    # Menggunakan extra_hosts untuk akses ke PostgreSQL di host system
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
