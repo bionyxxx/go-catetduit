@@ -12,11 +12,8 @@ services:
       - "8082:8082"
     env_file:
       - .env
-    # Menggunakan extra_hosts untuk akses ke PostgreSQL di host system
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 networks:
-  - default:
-      driver: bridge
+  default:
+    driver: bridge
 
