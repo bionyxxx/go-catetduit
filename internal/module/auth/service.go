@@ -52,6 +52,31 @@ func (s *Service) Authenticate(email, password string) (*LoginResponse, error) {
 	return loginResp, nil
 }
 
+func (s *Service) RefreshToken(refreshToken string) (*LoginResponse, error) {
+	claims, err := s.jwtHelper.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, exp, err := s.jwtHelper.GenerateAccessToken(claims.UserID, claims.Email, claims.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, err := s.jwtHelper.GenerateRefreshToken(claims.UserID, claims.Email, claims.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	loginResp := &LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresAt:    exp,
+	}
+
+	return loginResp, nil
+}
+
 func (s *Service) Register(registerRequest *RegisterRequest) (*user.UserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), bcrypt.DefaultCost)
 	if err != nil {

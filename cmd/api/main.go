@@ -64,7 +64,7 @@ func main() {
 
 	// CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://catetduit.duttafachrezy.my.id"},
+		AllowedOrigins:   []string{"http://127.0.0.1:3000", "https://catetduit.duttafachrezy.my.id"},
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,

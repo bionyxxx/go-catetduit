@@ -13,6 +13,10 @@ type RegisterRequest struct {
 	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`

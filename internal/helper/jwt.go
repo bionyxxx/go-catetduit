@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	ErrInvalidToken = errors.New("invalid token")
-	ErrExpiredToken = errors.New("token has expired")
+	ErrInvalidToken        = errors.New("invalid token")
+	ErrInvalidRefreshToken = errors.New("invalid refresh token")
+	ErrExpiredToken        = errors.New("token has expired")
 )
 
 type JWTClaims struct {
@@ -77,6 +78,30 @@ func (j *JWTHelper) GenerateRefreshToken(userID uint, email, name string) (strin
 	}
 
 	return tokenString, nil
+}
+
+func (j *JWTHelper) ValidateRefreshToken(tokenString string) (*JWTClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrInvalidRefreshToken
+		}
+		return []byte(j.secretKey), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok || !token.Valid {
+		return nil, ErrInvalidToken
+	}
+
+	if claims.ExpiresAt.Time.Before(time.Now()) {
+		return nil, ErrExpiredToken
+	}
+
+	return claims, nil
 }
 
 func (j *JWTHelper) ValidateToken(tokenString string) (*JWTClaims, error) {

@@ -64,6 +64,48 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
+	var req RefreshTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		err := helper.ResponseBadRequest(w, "Invalid request payload", err.Error())
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		errDetails := helper.FormatValidationErrors(err)
+		err := helper.ResponseUnprocessableEntity(w, "Validation failed", errDetails)
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	refreshResp, err := h.service.RefreshToken(req.RefreshToken)
+
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			err := helper.ResponseUnauthorized(w, "Invalid refresh token")
+			if err != nil {
+				fmt.Println("Error sending response:", err)
+			}
+			return
+		}
+		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())
+		if err != nil {
+			fmt.Println("Error sending response:", err)
+		}
+		return
+	}
+
+	err = helper.ResponseOKWithData(w, "Token refreshed successfully", refreshResp)
+	if err != nil {
+		fmt.Println("Error sending response:", err)
+	}
+}
+
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

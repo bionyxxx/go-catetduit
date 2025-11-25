@@ -10,5 +10,6 @@ func RegisterRoutes(r chi.Router, validator *validator.Validate, authService *Se
 	handler := NewHandler(authService, validator)
 
 	r.Post("/auth/login", handler.Login)
+	r.Post("/auth/refresh", handler.Refresh)
 	r.Post("/auth/register", handler.Register)
 }
