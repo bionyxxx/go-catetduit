@@ -22,18 +22,37 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func main() {
+var (
+	mainConfig   *config.Config
+	dbConfig     *config.DatabaseConfig
+	db           *sqlx.DB
+	oauth2Config *config.OAuth2Config
+)
+
+func init() {
+	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading .env file")
 	}
 
-	// Load configuration (if any)
-	mainConfig := config.NewConfig()
-	dbConfig := config.NewDatabaseConfig()
+	// Load configuration
+	mainConfig = config.NewConfig()
+	dbConfig = config.NewDatabaseConfig()
 
-	// Init DB connection here (omitted for brevity)
-	db := database.DBConnect(dbConfig)
+	// Init DB connection
+	db = database.DBConnect(dbConfig)
+
+	// Database migrations
+	database.DBMigration(db)
+
+	// Set DB for custom validator
+	customValidator.SetDB(db)
+
+	oauth2Config = config.NewOAuth2Config()
+}
+
+func main() {
 	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
@@ -41,19 +60,10 @@ func main() {
 		}
 	}(db)
 
-	// Database migrations (if any)
-	database.DBMigration(db)
-
-	customValidator.SetDB(db)
 	validate := customValidator.NewCustomValidator()
 
-	// This function registers a custom "tag name" function.
-	// It tells the validator to use the `json` tag value as the field name.
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		// Look for the json tag and split it by comma
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-
-		// Use the struct field name as a fallback
 		if name == "-" || name == "" {
 			return fld.Name
 		}
@@ -62,9 +72,8 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://127.0.0.1:3000", "https://catetduit.duttafachrezy.my.id"},
+		AllowedOrigins:   []string{"http://127.0.0.1:3000", "http://localhost:3000", "https://catetduit.duttafachrezy.my.id"},
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,
@@ -74,21 +83,18 @@ func main() {
 	userRepo := user.NewRepository(db)
 	transactionRepo := transaction.NewRepository(db)
 
-	// Init helpers
 	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret)
 
 	authService := auth.NewService(userRepo, jwtHelper)
 	userService := user.NewService(userRepo)
 	transactionService := transaction.NewService(transactionRepo)
 
-	// Middleware
 	r.Use(c.Handler)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// Register routes
 	r.Route("/api/v1", func(r chi.Router) {
-		auth.RegisterRoutes(r, validate, authService)
+		auth.RegisterRoutes(r, validate, authService, oauth2Config)
 		r.Group(func(r chi.Router) {
 			authMiddleware := middleware2.NewAuthMiddleware(jwtHelper)
 			r.Use(authMiddleware.RequireAuth)
@@ -97,7 +103,6 @@ func main() {
 		})
 	})
 
-	// Start server
 	port := ":" + fmt.Sprintf("%d", mainConfig.APIPort)
 	fmt.Printf("Server starting on port %s\n", port)
 	if err := http.ListenAndServe(port, r); err != nil {
