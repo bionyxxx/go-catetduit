@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"catetduit/internal/config"
 	"errors"
 	"strings"
 	"time"
@@ -23,19 +22,25 @@ type JWTClaims struct {
 }
 
 type JWTHelper struct {
-	secretKey  string
-	mainConfig *config.Config
+	secretKey               string
+	jwtExpiredInHour        int
+	jwtRefreshExpiredInHour int
 }
 
-func NewJWTHelper(secretKey string) *JWTHelper {
+func NewJWTHelper(secretKey string, jwtExpiredInHour, jwtRefreshExpiredInHour int) *JWTHelper {
 	return &JWTHelper{
-		secretKey:  secretKey,
-		mainConfig: config.NewConfig(),
+		secretKey:               secretKey,
+		jwtExpiredInHour:        jwtExpiredInHour,
+		jwtRefreshExpiredInHour: jwtRefreshExpiredInHour,
 	}
 }
 
+func (j *JWTHelper) GetJWTRefreshExpiredInHour() int {
+	return j.jwtRefreshExpiredInHour
+}
+
 func (j *JWTHelper) GenerateAccessToken(userID uint, email, name string) (string, int64, error) {
-	expirationTime := time.Now().Add(time.Duration(j.mainConfig.JWTExpiredInHour) * time.Hour)
+	expirationTime := time.Now().Add(time.Duration(j.jwtExpiredInHour) * time.Hour)
 
 	claims := &JWTClaims{
 		UserID: userID,
@@ -58,7 +63,7 @@ func (j *JWTHelper) GenerateAccessToken(userID uint, email, name string) (string
 }
 
 func (j *JWTHelper) GenerateRefreshToken(userID uint, email, name string) (string, error) {
-	expirationTime := time.Now().Add(time.Duration(j.mainConfig.JWTRefreshExpiredInHour) * time.Hour) // Token berlaku 7 hari
+	expirationTime := time.Now().Add(time.Duration(j.jwtRefreshExpiredInHour) * time.Hour)
 
 	claims := &JWTClaims{
 		UserID: userID,

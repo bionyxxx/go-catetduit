@@ -22,15 +22,24 @@ func NewAuthMiddleware(jwtHelper *helper.JWTHelper) *AuthMiddleware {
 
 func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+		var tokenString string
+		var err error
 
-		tokenString, err := helper.ExtractTokenFromHeader(authHeader)
-		if err != nil {
-			err := helper.ResponseUnauthorized(w, "Authorization token required")
+		// Prioritas 1: Baca dari cookie (production/browser)
+		cookie, errCookie := r.Cookie("access_token")
+		if errCookie == nil {
+			tokenString = cookie.Value
+		} else {
+			// Prioritas 2: Baca dari Authorization header (testing/API client)
+			authHeader := r.Header.Get("Authorization")
+			tokenString, err = helper.ExtractTokenFromHeader(authHeader)
 			if err != nil {
-				panic("Failed to send unauthorized response: " + err.Error())
+				err := helper.ResponseBadRequest(w, "Authorization token required", err)
+				if err != nil {
+					panic("Failed to send unauthorized response: " + err.Error())
+				}
+				return
 			}
-			return
 		}
 
 		claims, err := m.jwtHelper.ValidateToken(tokenString)

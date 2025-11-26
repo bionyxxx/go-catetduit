@@ -6,6 +6,7 @@ import (
 	"catetduit/internal/helper"
 	middleware2 "catetduit/internal/middleware"
 	"catetduit/internal/module/auth"
+	"catetduit/internal/module/oauth"
 	"catetduit/internal/module/transaction"
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
@@ -30,23 +31,18 @@ var (
 )
 
 func init() {
-	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading .env file")
 	}
 
-	// Load configuration
 	mainConfig = config.NewConfig()
 	dbConfig = config.NewDatabaseConfig()
 
-	// Init DB connection
 	db = database.DBConnect(dbConfig)
 
-	// Database migrations
 	database.DBMigration(db)
 
-	// Set DB for custom validator
 	customValidator.SetDB(db)
 
 	oauth2Config = config.NewOAuth2Config()
@@ -83,9 +79,10 @@ func main() {
 	userRepo := user.NewRepository(db)
 	transactionRepo := transaction.NewRepository(db)
 
-	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret)
+	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret, mainConfig.JWTExpiredInHour, mainConfig.JWTRefreshExpiredInHour)
 
-	authService := auth.NewService(userRepo, jwtHelper)
+	oauth2Service := oauth.NewService(oauth2Config, userRepo, jwtHelper)
+	authService := auth.NewService(userRepo, jwtHelper, *oauth2Config)
 	userService := user.NewService(userRepo)
 	transactionService := transaction.NewService(transactionRepo)
 
@@ -93,6 +90,9 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Routes
+
+	// API v1 Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		auth.RegisterRoutes(r, validate, authService, oauth2Config)
 		r.Group(func(r chi.Router) {
@@ -101,6 +101,11 @@ func main() {
 			user.RegisterRoutes(r, validate, userService)
 			transaction.RegisterRoutes(r, validate, transactionService)
 		})
+	})
+
+	// Oauth2 Routes
+	r.Route("/oauth2", func(r chi.Router) {
+		oauth.RegisterRoutes(r, validate, authService, oauth2Service, oauth2Config)
 	})
 
 	port := ":" + fmt.Sprintf("%d", mainConfig.APIPort)

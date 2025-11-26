@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"catetduit/internal/config"
 	"catetduit/internal/helper"
 	"catetduit/internal/module/user"
 	"errors"
@@ -15,14 +16,16 @@ var (
 )
 
 type Service struct {
-	userRepo  user.Repository
-	jwtHelper *helper.JWTHelper
+	userRepo     user.Repository
+	jwtHelper    *helper.JWTHelper
+	oauth2Config *config.OAuth2Config
 }
 
-func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper) *Service {
+func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper, auth2Config config.OAuth2Config) *Service {
 	return &Service{
-		userRepo:  userRepo,
-		jwtHelper: jwtHelper,
+		userRepo:     userRepo,
+		jwtHelper:    jwtHelper,
+		oauth2Config: &auth2Config,
 	}
 }
 

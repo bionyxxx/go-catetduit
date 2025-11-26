@@ -9,8 +9,10 @@ import (
 )
 
 type OAuth2Config struct {
-	GoogleConfig *oauth2.Config
-	StateString  string
+	GoogleConfig      *oauth2.Config
+	StateString       string
+	RedirectUrl       string
+	FailedRedirectUrl string
 }
 
 func NewOAuth2Config() *OAuth2Config {
@@ -21,7 +23,6 @@ func NewOAuth2Config() *OAuth2Config {
 	}
 
 	return &OAuth2Config{
-		StateString: stateString,
 		GoogleConfig: &oauth2.Config{
 			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 			ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
@@ -32,5 +33,8 @@ func NewOAuth2Config() *OAuth2Config {
 			},
 			Endpoint: google.Endpoint,
 		},
+		StateString:       stateString,
+		RedirectUrl:       os.Getenv("OAUTH2_SUCCESS_REDIRECT_URL"),
+		FailedRedirectUrl: os.Getenv("OAUTH2_FAILED_REDIRECT_URL"),
 	}
 }

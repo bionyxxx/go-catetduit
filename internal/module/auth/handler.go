@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"catetduit/internal/config"
 	"catetduit/internal/helper"
 	"encoding/json"
 	"errors"
@@ -143,65 +142,32 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) GoogleLogin(oauth2Config *config.OAuth2Config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		url := oauth2Config.GoogleConfig.AuthCodeURL(oauth2Config.StateString)
-		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	// Hapus cookie access_token
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Set true jika sudah HTTPS (production)
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1, // Hapus cookie
+	})
+
+	// Hapus cookie refresh_token
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Set true jika sudah HTTPS (production)
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1, // Hapus cookie
+	})
+
+	// Return JSON response, biarkan frontend yang handle redirect
+	err := helper.ResponseOK(w, "Logout successful")
+	if err != nil {
+		fmt.Println("Error sending response:", err)
 	}
 }
-
-//// GoogleCallback
-//func (h *Handler) GoogleCallback(oauth2Config *helper.OAuth2Config) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		if r.FormValue("state") != oauth2Config.StateString {
-//			err := helper.ResponseUnauthorized(w, "Invalid OAuth2 state")
-//			if err != nil {
-//				fmt.Println("Error sending response:", err)
-//			}
-//			return
-//		}
-//
-//		token, err := oauth2Config.Config.Exchange(r.Context(), r.FormValue("code"), oauth2Config.AuthCodeOptions...)
-//		if err != nil {
-//			err := helper.ResponseInternalServerError(w, "Failed to exchange token", err.Error())
-//			if err != nil {
-//				fmt.Println("Error sending response:", err)
-//			}
-//			return
-//		}
-//
-//		client := oauth2Config.Config.Client(r.Context(), token)
-//		resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
-//		if err != nil || resp.StatusCode != http.StatusOK {
-//			err := helper.ResponseInternalServerError(w, "Failed to get user info from Google", "")
-//			if err != nil {
-//				fmt.Println("Error sending response:", err)
-//			}
-//			return
-//		}
-//		defer resp.Body.Close()
-//
-//		var googleUser GoogleUserInfo
-//		if err := json.NewDecoder(resp.Body).Decode(&googleUser); err != nil {
-//			err := helper.ResponseInternalServerError(w, "Failed to decode Google user info", err.Error())
-//			if err != nil {
-//				fmt.Println("Error sending response:", err)
-//			}
-//			return
-//		}
-//
-//		authResp, err := h.service.GoogleAuthenticate(&googleUser)
-//		if err != nil {
-//			err := helper.ResponseInternalServerError(w, "Authentication failed", err.Error())
-//			if err != nil {
-//				fmt.Println("Error sending response:", err)
-//			}
-//			return
-//		}
-//
-//		err = helper.ResponseOKWithData(w, "Login with Google successful", authResp)
-//		if err != nil {
-//			fmt.Println("Error sending response:", err)
-//		}
-//	}
-//}
