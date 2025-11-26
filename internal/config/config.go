@@ -6,6 +6,7 @@ import (
 )
 
 type Config struct {
+	IsProduction            bool
 	APIPort                 int
 	JWTSecret               string
 	JWTExpiredInHour        int
@@ -13,6 +14,13 @@ type Config struct {
 }
 
 func NewConfig() *Config {
+	environtment := os.Getenv("ENVIRONMENT")
+
+	isProduction := false
+	if environtment == "production" {
+		isProduction = true
+	}
+
 	apiPort, err := strconv.Atoi(os.Getenv("API_PORT"))
 
 	if err != nil {
@@ -38,6 +46,7 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
+		IsProduction:            isProduction,
 		APIPort:                 apiPort,
 		JWTSecret:               jwtSecret,
 		JWTExpiredInHour:        jwtExpiredInHour,

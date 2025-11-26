@@ -149,7 +149,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // Set true jika sudah HTTPS (production)
+		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1, // Hapus cookie
 	})
@@ -160,7 +160,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // Set true jika sudah HTTPS (production)
+		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1, // Hapus cookie
 	})

@@ -8,13 +8,15 @@ import (
 )
 
 type Service struct {
+	mainConfig   *config.Config
 	oauth2Config *config.OAuth2Config
 	userRepo     user.Repository
 	jwtHelper    *helper.JWTHelper
 }
 
-func NewService(auth2Config *config.OAuth2Config, userRepo user.Repository, helper *helper.JWTHelper) *Service {
+func NewService(mainConfig *config.Config, auth2Config *config.OAuth2Config, userRepo user.Repository, helper *helper.JWTHelper) *Service {
 	return &Service{
+		mainConfig:   mainConfig,
 		oauth2Config: auth2Config,
 		userRepo:     userRepo,
 		jwtHelper:    helper,

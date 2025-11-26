@@ -18,13 +18,15 @@ var (
 type Service struct {
 	userRepo     user.Repository
 	jwtHelper    *helper.JWTHelper
+	mainConfig   *config.Config
 	oauth2Config *config.OAuth2Config
 }
 
-func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper, auth2Config config.OAuth2Config) *Service {
+func NewService(userRepo user.Repository, jwtHelper *helper.JWTHelper, mainConfig config.Config, auth2Config config.OAuth2Config) *Service {
 	return &Service{
 		userRepo:     userRepo,
 		jwtHelper:    jwtHelper,
+		mainConfig:   &mainConfig,
 		oauth2Config: &auth2Config,
 	}
 }

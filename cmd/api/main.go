@@ -81,8 +81,8 @@ func main() {
 
 	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret, mainConfig.JWTExpiredInHour, mainConfig.JWTRefreshExpiredInHour)
 
-	oauth2Service := oauth.NewService(oauth2Config, userRepo, jwtHelper)
-	authService := auth.NewService(userRepo, jwtHelper, *oauth2Config)
+	oauth2Service := oauth.NewService(mainConfig, oauth2Config, userRepo, jwtHelper)
+	authService := auth.NewService(userRepo, jwtHelper, *mainConfig, *oauth2Config)
 	userService := user.NewService(userRepo)
 	transactionService := transaction.NewService(transactionRepo)
 

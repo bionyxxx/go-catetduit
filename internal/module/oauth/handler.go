@@ -70,8 +70,8 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Name:     "access_token",
 		Value:    authResp.AccessToken,
 		Path:     "/",
-		HttpOnly: true,  // Penting! Agar JS tidak bisa akses (anti XSS)
-		Secure:   false, // Set true jika sudah HTTPS (production)
+		HttpOnly: true,                              // Penting! Agar JS tidak bisa akses (anti XSS)
+		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
 		SameSite: http.SameSiteLaxMode,
 		MaxAge: func() int {
 			remaining := int(authResp.ExpiresAt - time.Now().Unix())
@@ -85,8 +85,8 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Name:     "refresh_token",
 		Value:    authResp.RefreshToken,
 		Path:     "/",
-		HttpOnly: true,  // Penting! Agar JS tidak bisa akses (anti XSS)
-		Secure:   false, // Set true jika sudah HTTPS (production)
+		HttpOnly: true,                              // Penting! Agar JS tidak bisa akses (anti XSS)
+		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int((time.Duration(h.service.jwtHelper.GetJWTRefreshExpiredInHour()) * time.Hour).Seconds()),
 	})
