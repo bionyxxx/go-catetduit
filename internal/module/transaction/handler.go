@@ -38,8 +38,8 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 	req.UserID = claims.UserID
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
-	startDateStr := r.URL.Query().Get("start_date")
-	endDateStr := r.URL.Query().Get("end_date")
+	startDateStr := r.URL.Query().Get("start_date") //timestamp string
+	endDateStr := r.URL.Query().Get("end_date")     //timestamp string
 
 	limit := uint(10) // default
 	offset := uint(0) // default
@@ -58,14 +58,16 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 
 	var startDate, endDate *time.Time
 
-	if startParam := startDateStr; startParam != "" {
-		if t, err := time.Parse(time.RFC3339, startParam); err == nil {
+	if startDateStr != "" {
+		if ts, err := strconv.ParseInt(startDateStr, 10, 64); err == nil {
+			t := time.Unix(ts, 0)
 			startDate = &t
 		}
 	}
 
-	if endParam := endDateStr; endParam != "" {
-		if t, err := time.Parse(time.RFC3339, endParam); err == nil {
+	if endDateStr != "" {
+		if ts, err := strconv.ParseInt(endDateStr, 10, 64); err == nil {
+			t := time.Unix(ts, 0)
 			endDate = &t
 		}
 	}
