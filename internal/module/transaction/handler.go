@@ -37,6 +37,8 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 	req.UserID = claims.UserID
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
+	startDateStr := r.URL.Query().Get("start_date")
+	endDateStr := r.URL.Query().Get("end_date")
 
 	limit := uint(10) // default
 	offset := uint(0) // default
@@ -53,8 +55,24 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
+	// startDate and endDate can be empty timestamp
+	var startDate, endDate int64
+	if startDateStr != "" {
+		if val, err := strconv.ParseInt(startDateStr, 10, 64); err == nil {
+			startDate = val
+		}
+	}
+
+	if endDateStr != "" {
+		if val, err := strconv.ParseInt(endDateStr, 10, 64); err == nil {
+			endDate = val
+		}
+	}
+
 	req.Limit = limit
 	req.Offset = offset
+	req.StartDate = startDate
+	req.EndDate = endDate
 	transactionsResp, err := h.service.GetTransactionsByUserID(&req)
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())

@@ -1,6 +1,11 @@
 package transaction
 
-import "github.com/jmoiron/sqlx"
+import (
+	"fmt"
+	"time"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type repositoryImpl struct {
 	db *sqlx.DB
@@ -49,11 +54,34 @@ func (r *repositoryImpl) CreateTransaction(transaction *Transaction) (*Transacti
 	return &createdTransaction, nil
 }
 
-func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint) ([]*Transaction, error) {
+func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint, startDate, endDate time.Time) ([]*Transaction, error) {
 	var transactions []*Transaction
-	err := r.db.Select(&transactions,
-		"SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1 ORDER BY transaction_date DESC LIMIT $2 OFFSET $3",
-		userID, limit, offset)
+
+	query := "SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1"
+	args := []interface{}{userID}
+	argCount := 1
+
+	if !startDate.IsZero() {
+		argCount++
+		query += " AND transaction_date >= $" + fmt.Sprintf("%d", argCount)
+		args = append(args, startDate)
+	}
+
+	if !endDate.IsZero() {
+		argCount++
+		query += " AND transaction_date <= $" + fmt.Sprintf("%d", argCount)
+		args = append(args, endDate)
+	}
+
+	argCount++
+	query += " ORDER BY transaction_date DESC LIMIT $" + fmt.Sprintf("%d", argCount)
+	args = append(args, limit)
+
+	argCount++
+	query += " OFFSET $" + fmt.Sprintf("%d", argCount)
+	args = append(args, offset)
+
+	err := r.db.Select(&transactions, query, args...)
 	if err != nil {
 		return nil, err
 	}

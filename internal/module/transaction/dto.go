@@ -23,9 +23,11 @@ type TransactionLoadMoreResponse struct {
 }
 
 type GetTransactionsByUserIDRequest struct {
-	UserID uint `json:"user_id" validate:"required"`
-	Limit  uint `json:"limit" validate:"gte=0"`
-	Offset uint `json:"offset" validate:"gte=0"`
+	UserID    uint  `json:"user_id" validate:"required"`
+	Limit     uint  `json:"limit" validate:"gte=0"`
+	Offset    uint  `json:"offset" validate:"gte=0"`
+	StartDate int64 `json:"start_date" validate:"gte=0"`
+	EndDate   int64 `json:"end_date" validate:"gte=0"`
 }
 
 type CreateTransactionRequest struct {
