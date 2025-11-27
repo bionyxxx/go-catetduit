@@ -86,7 +86,7 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = helper.ResponseOKWithData(w, "Retrieval successful", transactionsResp)
+	err = helper.ResponseOKWithData(w, "Transactions retrieved successfully", transactionsResp)
 	if err != nil {
 		panic(err.Error())
 	}

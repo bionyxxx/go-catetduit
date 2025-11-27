@@ -2,8 +2,8 @@ package transaction
 
 import "time"
 
-const TransactionTypeCredit = "credit"
-const TransactionTypeDebit = "debit"
+const TypeCredit = "credit"
+const TypeDebit = "debit"
 
 type Transaction struct {
 	ID              uint      `json:"id" db:"id"`

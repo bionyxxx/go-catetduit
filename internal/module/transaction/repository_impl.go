@@ -107,7 +107,7 @@ func (r *repositoryImpl) GetTransactionSummaryByUserID(userID uint) (*Transactio
 		FROM transactions
 		WHERE user_id = $3
 	`
-	err := r.db.Get(&summary, query, TransactionTypeCredit, TransactionTypeDebit, userID)
+	err := r.db.Get(&summary, query, TypeCredit, TypeDebit, userID)
 	if err != nil {
 		return nil, err
 	}

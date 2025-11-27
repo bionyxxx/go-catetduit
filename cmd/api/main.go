@@ -6,6 +6,7 @@ import (
 	"catetduit/internal/helper"
 	middleware2 "catetduit/internal/middleware"
 	"catetduit/internal/module/auth"
+	"catetduit/internal/module/category"
 	"catetduit/internal/module/oauth"
 	"catetduit/internal/module/transaction"
 	"catetduit/internal/module/user"
@@ -78,6 +79,7 @@ func main() {
 
 	userRepo := user.NewRepository(db)
 	transactionRepo := transaction.NewRepository(db)
+	categoryRepo := category.NewRepository(db)
 
 	jwtHelper := helper.NewJWTHelper(mainConfig.JWTSecret, mainConfig.JWTExpiredInHour, mainConfig.JWTRefreshExpiredInHour)
 
@@ -85,6 +87,7 @@ func main() {
 	authService := auth.NewService(userRepo, jwtHelper, *mainConfig, *oauth2Config)
 	userService := user.NewService(userRepo)
 	transactionService := transaction.NewService(transactionRepo)
+	categoryService := category.NewService(categoryRepo)
 
 	r.Use(c.Handler)
 	r.Use(middleware.Logger)
@@ -100,6 +103,7 @@ func main() {
 			r.Use(authMiddleware.RequireAuth)
 			user.RegisterRoutes(r, validate, userService)
 			transaction.RegisterRoutes(r, validate, transactionService)
+			category.RegisterRoutes(r, validate, categoryService)
 		})
 	})
 
