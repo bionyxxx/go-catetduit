@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -55,17 +56,17 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	// startDate and endDate can be empty timestamp
-	var startDate, endDate int64
-	if startDateStr != "" {
-		if val, err := strconv.ParseInt(startDateStr, 10, 64); err == nil {
-			startDate = val
+	var startDate, endDate *time.Time
+
+	if startParam := startDateStr; startParam != "" {
+		if t, err := time.Parse(time.RFC3339, startParam); err == nil {
+			startDate = &t
 		}
 	}
 
-	if endDateStr != "" {
-		if val, err := strconv.ParseInt(endDateStr, 10, 64); err == nil {
-			endDate = val
+	if endParam := endDateStr; endParam != "" {
+		if t, err := time.Parse(time.RFC3339, endParam); err == nil {
+			endDate = &t
 		}
 	}
 
@@ -73,6 +74,7 @@ func (h *Handler) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 	req.Offset = offset
 	req.StartDate = startDate
 	req.EndDate = endDate
+
 	transactionsResp, err := h.service.GetTransactionsByUserID(&req)
 	if err != nil {
 		err := helper.ResponseInternalServerError(w, "An error occurred, please try again.", err.Error())

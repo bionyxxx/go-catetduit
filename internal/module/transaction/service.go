@@ -46,7 +46,7 @@ func (s *Service) CreateTransaction(transactionRequest *CreateTransactionRequest
 }
 
 func (s *Service) GetTransactionsByUserID(req *GetTransactionsByUserIDRequest) ([]*TransactionLoadMoreResponse, error) {
-	transactions, err := s.repo.GetTransactionsByUserID(req.UserID, req.Limit+1, req.Offset, time.Unix(req.StartDate, 0), time.Unix(req.EndDate, 0))
+	transactions, err := s.repo.GetTransactionsByUserID(req.UserID, req.Limit+1, req.Offset, req.StartDate, req.EndDate)
 	if err != nil {
 		return nil, err
 	}

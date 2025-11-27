@@ -54,23 +54,23 @@ func (r *repositoryImpl) CreateTransaction(transaction *Transaction) (*Transacti
 	return &createdTransaction, nil
 }
 
-func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint, startDate, endDate time.Time) ([]*Transaction, error) {
+func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint, startDate, endDate *time.Time) ([]*Transaction, error) {
 	var transactions []*Transaction
 
 	query := "SELECT id, user_id, amount, type, description, transaction_date, created_at, updated_at FROM transactions WHERE user_id=$1"
 	args := []interface{}{userID}
 	argCount := 1
 
-	if !startDate.IsZero() {
+	if startDate != nil && !startDate.IsZero() {
 		argCount++
 		query += " AND transaction_date >= $" + fmt.Sprintf("%d", argCount)
-		args = append(args, startDate)
+		args = append(args, *startDate)
 	}
 
-	if !endDate.IsZero() {
+	if endDate != nil && !endDate.IsZero() {
 		argCount++
 		query += " AND transaction_date <= $" + fmt.Sprintf("%d", argCount)
-		args = append(args, endDate)
+		args = append(args, *endDate)
 	}
 
 	argCount++
@@ -87,7 +87,6 @@ func (r *repositoryImpl) GetTransactionsByUserID(userID, limit, offset uint, sta
 	}
 	return transactions, nil
 }
-
 func (r *repositoryImpl) GetAllTransactionsByUserID(userID uint) ([]*Transaction, error) {
 	var transactions []*Transaction
 	err := r.db.Select(&transactions,
