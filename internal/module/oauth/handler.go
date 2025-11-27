@@ -66,13 +66,15 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Set Cookie
+	// Set cookie dengan domain yang shared
 	http.SetCookie(w, &http.Cookie{
 		Name:     "access_token",
 		Value:    authResp.AccessToken,
 		Path:     "/",
-		HttpOnly: true,                              // Penting! Agar JS tidak bisa akses (anti XSS)
-		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
-		SameSite: http.SameSiteLaxMode,
+		Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+		HttpOnly: true,
+		Secure:   h.service.mainConfig.IsProduction, // Wajib true untuk SameSite=None
+		SameSite: http.SameSiteNoneMode,             // Bukan Lax, tapi None untuk cross-site
 		MaxAge: func() int {
 			remaining := int(authResp.ExpiresAt - time.Now().Unix())
 			if remaining < 0 {
@@ -85,9 +87,10 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Name:     "refresh_token",
 		Value:    authResp.RefreshToken,
 		Path:     "/",
-		HttpOnly: true,                              // Penting! Agar JS tidak bisa akses (anti XSS)
-		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
-		SameSite: http.SameSiteLaxMode,
+		Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+		HttpOnly: true,
+		Secure:   h.service.mainConfig.IsProduction, // Wajib true
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   int((time.Duration(h.service.jwtHelper.GetJWTRefreshExpiredInHour()) * time.Hour).Seconds()),
 	})
 

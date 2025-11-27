@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	IsProduction            bool
+	Domain                  string
 	APIPort                 int
 	JWTSecret               string
 	JWTExpiredInHour        int
@@ -14,11 +15,17 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	environtment := os.Getenv("ENVIRONMENT")
+	environment := os.Getenv("APP_ENVIRONMENT")
 
 	isProduction := false
-	if environtment == "production" {
+	if environment == "production" {
 		isProduction = true
+	}
+
+	domain := os.Getenv("APP_DOMAIN")
+
+	if domain == "" {
+		panic("APP_DOMAIN environment variable is required")
 	}
 
 	apiPort, err := strconv.Atoi(os.Getenv("API_PORT"))
@@ -46,6 +53,7 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
+		Domain:                  domain,
 		IsProduction:            isProduction,
 		APIPort:                 apiPort,
 		JWTSecret:               jwtSecret,
