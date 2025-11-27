@@ -67,32 +67,59 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	// 5. Set Cookie
 	// Set cookie dengan domain yang shared
-	http.SetCookie(w, &http.Cookie{
-		Name:     "access_token",
-		Value:    authResp.AccessToken,
-		Path:     "/",
-		Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
-		HttpOnly: true,
-		Secure:   h.service.mainConfig.IsProduction, // Wajib true untuk SameSite=None
-		SameSite: http.SameSiteNoneMode,             // Bukan Lax, tapi None untuk cross-site
-		MaxAge: func() int {
-			remaining := int(authResp.ExpiresAt - time.Now().Unix())
-			if remaining < 0 {
-				return 0
-			}
-			return remaining
-		}(),
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    authResp.RefreshToken,
-		Path:     "/",
-		Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
-		HttpOnly: true,
-		Secure:   h.service.mainConfig.IsProduction, // Wajib true
-		SameSite: http.SameSiteNoneMode,
-		MaxAge:   int((time.Duration(h.service.jwtHelper.GetJWTRefreshExpiredInHour()) * time.Hour).Seconds()),
-	})
+	if h.service.mainConfig.IsProduction {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "access_token",
+			Value:    authResp.AccessToken,
+			Path:     "/",
+			Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+			HttpOnly: true,
+			Secure:   true,                  // Wajib true untuk SameSite=None
+			SameSite: http.SameSiteNoneMode, // Bukan Lax, tapi None untuk cross-site
+			MaxAge: func() int {
+				remaining := int(authResp.ExpiresAt - time.Now().Unix())
+				if remaining < 0 {
+					return 0
+				}
+				return remaining
+			}(),
+		})
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    authResp.RefreshToken,
+			Path:     "/",
+			Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+			HttpOnly: true,
+			Secure:   true, // Wajib true
+			SameSite: http.SameSiteNoneMode,
+			MaxAge:   int((time.Duration(h.service.jwtHelper.GetJWTRefreshExpiredInHour()) * time.Hour).Seconds()),
+		})
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "access_token",
+			Value:    authResp.AccessToken,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   false,                // Wajib true untuk SameSite=None
+			SameSite: http.SameSiteLaxMode, // Bukan Lax, tapi None untuk cross-site
+			MaxAge: func() int {
+				remaining := int(authResp.ExpiresAt - time.Now().Unix())
+				if remaining < 0 {
+					return 0
+				}
+				return remaining
+			}(),
+		})
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    authResp.RefreshToken,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   false, // Wajib true
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   int((time.Duration(h.service.jwtHelper.GetJWTRefreshExpiredInHour()) * time.Hour).Seconds()),
+		})
+	}
 
 	// 6. Redirect ke Frontend
 	http.Redirect(w, r, h.service.oauth2Config.RedirectUrl, http.StatusTemporaryRedirect)

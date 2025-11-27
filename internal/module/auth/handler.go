@@ -143,27 +143,50 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Hapus cookie access_token
-	http.SetCookie(w, &http.Cookie{
-		Name:     "access_token",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1, // Hapus cookie
-	})
+	if h.service.mainConfig.IsProduction {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "access_token",
+			Value:    "",
+			Path:     "/",
+			Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+			HttpOnly: true,
+			Secure:   true,                  // Wajib true untuk SameSite=None
+			SameSite: http.SameSiteNoneMode, // Bukan Lax, tapi None untuk cross-site
+			MaxAge:   -1,                    // Hapus cookie
+		})
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    "",
+			Path:     "/",
+			Domain:   "." + h.service.mainConfig.Domain, // Domain shared untuk semua subdomain
+			HttpOnly: true,
+			Secure:   true, // Wajib true
+			SameSite: http.SameSiteNoneMode,
+			MaxAge:   -1, // Hapus cookie
+		})
+	} else {
+		// Hapus cookie access_token
+		http.SetCookie(w, &http.Cookie{
+			Name:     "access_token",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   -1, // Hapus cookie
+		})
 
-	// Hapus cookie refresh_token
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1, // Hapus cookie
-	})
+		// Hapus cookie refresh_token
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   h.service.mainConfig.IsProduction, // Set true jika sudah HTTPS (production)
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   -1, // Hapus cookie
+		})
+	}
 
 	// Return JSON response, biarkan frontend yang handle redirect
 	err := helper.ResponseOK(w, "Logout successful")
