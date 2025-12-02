@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # Go API Application
-  app:
+  catetduit-be:
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,8 +12,10 @@ services:
       - "8082:8082"
     env_file:
       - .env
+    networks:
+      - catetduit-net
 
 networks:
-  default:
+  catetduit-net:
     driver: bridge
 
