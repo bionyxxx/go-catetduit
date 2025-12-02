@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: go-catetduit-app
+    container_name: catetduit-be
     restart: unless-stopped
     ports:
       - "8082:8082"
