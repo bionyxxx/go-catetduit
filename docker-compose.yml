@@ -19,4 +19,4 @@ services:
 networks:
   catetduit-net:
     driver: bridge
-
+    external: true
