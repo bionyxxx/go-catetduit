@@ -11,6 +11,7 @@ import (
 	"catetduit/internal/module/transaction"
 	"catetduit/internal/module/user"
 	customValidator "catetduit/internal/validator"
+	"encoding/json"
 	"fmt"
 	_ "log"
 	"net/http"
@@ -22,6 +23,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -35,6 +38,18 @@ func init() {
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading .env file")
+	}
+
+	bundle := i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+
+	_, err = bundle.LoadMessageFile("locales/active.en.json")
+	if err != nil {
+		return
+	}
+	_, err = bundle.LoadMessageFile("locales/active.id.json")
+	if err != nil {
+		return
 	}
 
 	mainConfig = config.NewConfig()
