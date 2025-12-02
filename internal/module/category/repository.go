@@ -1,7 +1,7 @@
 package category
 
 type Repository interface {
-	GetCategoryByID(id uint) (*Category, error)
+	GetCategoryByID(userID, id uint) (*Category, error)
 	CreateCategory(category *Category) (*Category, error)
 	GetCategoriesByUserID(userID uint, limit, offset *uint) ([]*Category, error)
 }

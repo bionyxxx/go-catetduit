@@ -19,6 +19,11 @@ type GetCategoriesByUserIDRequest struct {
 	Offset *uint `json:"offset" validate:"gte=0"`
 }
 
+type GetCategoryRequest struct {
+	UserID uint `json:"user_id" validate:"required"`
+	ID     uint `json:"id" validate:"required"`
+}
+
 type CreateCategoryRequest struct {
 	UserID uint   `json:"user_id" validate:"required"`
 	Name   string `json:"name" validate:"required,max=100"`

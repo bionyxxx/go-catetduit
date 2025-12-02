@@ -10,13 +10,43 @@ func NewService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) GetCategoryByID(id uint) (*CategoryResponse, error) {
-	return nil, nil
+func (s *Service) GetCategoryUserByID(request *GetCategoryRequest) (*CategoryResponse, error) {
+	category, err := s.repo.GetCategoryByID(request.UserID, request.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	categoryResponse := &CategoryResponse{
+		ID:        &category.ID,
+		UserID:    &category.UserID,
+		Name:      category.Name,
+		CreatedAt: category.CreatedAt.Unix(),
+		UpdatedAt: category.UpdatedAt.Unix(),
+	}
+
+	return categoryResponse, nil
 }
 
 func (s *Service) CreateCategory(categoryRequest *CreateCategoryRequest) (*CategoryResponse, error) {
-	//TODO: implement create category
-	return nil, nil
+	category := &Category{
+		UserID: categoryRequest.UserID,
+		Name:   categoryRequest.Name,
+	}
+
+	createdCategory, err := s.repo.CreateCategory(category)
+	if err != nil {
+		return nil, err
+	}
+
+	categoryResponse := &CategoryResponse{
+		ID:        &createdCategory.ID,
+		UserID:    &createdCategory.UserID,
+		Name:      createdCategory.Name,
+		CreatedAt: createdCategory.CreatedAt.Unix(),
+		UpdatedAt: createdCategory.UpdatedAt.Unix(),
+	}
+
+	return categoryResponse, nil
 }
 
 func (s *Service) GetCategoriesByUserID(req *GetCategoriesByUserIDRequest) ([]*CategoryLoadMoreResponse, error) {
